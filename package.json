@@ -1,0 +1,19 @@
+{
+  "name": "discord-random-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/Main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "이승훈",
+  "license": "MIT",
+  "dependencies": {
+    "@types/josa": "^3.0.2",
+    "colors": "^1.4.0",
+    "discord.js": "^12.2.0",
+    "josa": "^3.0.1",
+    "mysql": "^2.18.1",
+    "typeorm": "^0.2.41"
+  }
+}
