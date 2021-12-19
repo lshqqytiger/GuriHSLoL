@@ -426,14 +426,15 @@ client.on("message", async (msg) => {
       },
     })) as Team[];
     leftTeams.sort(() => Math.random() - 0.5);
-    let winByDefaultValue = "";
-    let string = "";
+    const winByDefault = { name: "부전승", value: "없음" };
+    const matches = { name: "대진", value: "" };
     if (leftTeams.length & (leftTeams.length - 1)) {
       const winByDefaultTeams: Team[] = [];
+      winByDefault.value = "";
       while (leftTeams.length & (leftTeams.length - 1))
         winByDefaultTeams.push(leftTeams.pop() as Team);
       for (let i of winByDefaultTeams) {
-        winByDefaultValue += `${i.name}(${i.score})\n`;
+        winByDefault.value += `${i.name}(${i.score})\n`;
         if (round)
           await matchRepository.save(
             new Match(Number(round), i, new Team("부전승", "", i.league, ""))
@@ -442,7 +443,7 @@ client.on("message", async (msg) => {
     }
     for (let i = 0; i < leftTeams.length; i = i + 2) {
       let j = i + 1;
-      string += `${leftTeams[i].name}(${leftTeams[i].score}) VS ${leftTeams[j].name}(${leftTeams[j].score})\n`;
+      matches.value += `${leftTeams[i].name}(${leftTeams[i].score}) VS ${leftTeams[j].name}(${leftTeams[j].score})\n`;
       if (round)
         await matchRepository.save(
           new Match(Number(round), leftTeams[i], leftTeams[j])
@@ -451,16 +452,7 @@ client.on("message", async (msg) => {
     msg.channel.send({
       embed: new MessageEmbed()
         .setTitle(`대진 편성 결과${round ? "" : " (모의)"}`)
-        .addFields([
-          {
-            name: "부전승",
-            value: winByDefaultValue || "없음",
-          },
-          {
-            name: "대진",
-            value: string,
-          },
-        ]),
+        .addFields([winByDefault, matches]),
     } as MessageOptions);
   }
 });
