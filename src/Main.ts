@@ -317,7 +317,7 @@ client.on("message", async (msg) => {
           team2: team2Name,
         },
       })) || new Match(Number(round), team1, team2);
-    const winner = isEnd && (team1Score > team2Score ? team1 : team2).name;
+    const winner = isEnd && (team1Score > team2Score ? team1Name : team2Name);
     team1.games =
       team1.games -
       match.team1Score -

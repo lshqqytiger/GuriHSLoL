@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-import { Team } from "../model/Team";
 
 @Entity({ name: "match", schema: "public" })
 export class MatchSchema {
