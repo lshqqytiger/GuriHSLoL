@@ -1,5 +1,5 @@
 import { Client, MessageEmbed, MessageOptions } from "discord.js";
-import typeorm, { createConnection } from "typeorm";
+import typeorm, { createConnection, Connection, Repository } from "typeorm";
 import { josa } from "josa";
 import { Logger } from "./Logger";
 
@@ -9,7 +9,6 @@ import { Team } from "./model/Team";
 import { Match } from "./model/Match";
 import { Member } from "./Types";
 import { Help } from "./String";
-
 import config from "./Config";
 
 const client = new Client();
@@ -57,9 +56,9 @@ const spreadMembers = (members: Member[]) => {
   return string || "팀원 등록되지 않음";
 };
 
-let agent: typeorm.Connection;
-let teamRepository: typeorm.Repository<TeamSchema>;
-let matchRepository: typeorm.Repository<MatchSchema>;
+let agent: Connection;
+let teamRepository: Repository<TeamSchema>;
+let matchRepository: Repository<MatchSchema>;
 
 client.on("ready", async () => {
   agent = await createConnection({
@@ -96,8 +95,9 @@ client.on("message", async (msg) => {
       } as MessageOptions);
       return;
     }
-    const team = new Team(name, leader, Number(league), callNumber);
-    await teamRepository.save(team);
+    await teamRepository.save(
+      new Team(name, leader, Number(league), callNumber)
+    );
     msg.channel.send(josa(`팀 ${name}#{이} 등록되었습니다.`));
   } else if (msg.content.startsWith("!팀원등록")) {
     const [teamName, name, studentId, tier, nickname, lane] = msg.content
@@ -436,9 +436,7 @@ client.on("message", async (msg) => {
       for (let i of winByDefaultTeams) {
         winByDefault.value += `${i.name}(${i.score})\n`;
         if (round)
-          await matchRepository.save(
-            new Match(Number(round), i, new Team("부전승", "", i.league, ""))
-          );
+          await matchRepository.save(new Match(Number(round), i, "부전승"));
       }
     }
     for (let i = 0; i < leftTeams.length; i = i + 2) {
