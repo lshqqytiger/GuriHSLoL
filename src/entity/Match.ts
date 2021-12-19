@@ -9,14 +9,14 @@ export class MatchSchema {
   @Column("int")
   round: number;
 
-  @Column("json")
-  team1: Team;
+  @Column("text")
+  team1: string;
 
   @Column("int")
   team1Score: number;
 
-  @Column("json")
-  team2: Team;
+  @Column("text")
+  team2: string;
 
   @Column("int")
   team2Score: number;

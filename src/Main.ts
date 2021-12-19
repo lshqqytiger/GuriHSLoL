@@ -1,5 +1,5 @@
 import { Client, MessageEmbed, MessageOptions } from "discord.js";
-import typeorm, { createConnection, Raw } from "typeorm";
+import typeorm, { createConnection } from "typeorm";
 import { josa } from "josa";
 import { Logger } from "./Logger";
 
@@ -49,7 +49,11 @@ const calculateScore = (tier: string, lane: string) => {
 const spreadMembers = (members: Member[]) => {
   let string = "";
   for (let i of members)
-    string += `[${i.lane}] ${i.name}(${i.nickname}, ${i.tier}) [OP.GG](https://www.op.gg/summoner/userName=${i.nickname}) [FOW.KR](http://fow.kr/find/${i.nickname})\n`;
+    string += `[${i.lane}] ${i.name}(${i.nickname}, ${
+      i.tier
+    }) [OP.GG](${encodeURI(
+      `https://www.op.gg/summoner/userName=${i.nickname}`
+    )}) [FOW.KR](${encodeURI(`http://fow.kr/find/${i.nickname}`)})\n`;
   return string || "팀원 등록되지 않음";
 };
 
@@ -159,7 +163,7 @@ client.on("message", async (msg) => {
     await teamRepository.remove(team);
     msg.channel.send(josa(`팀 ${name}#{이} 삭제되었습니다.`));
   } else if (msg.content.startsWith("!팀원삭제")) {
-    const [teamName, name] = msg.content.substring(5).split(",");
+    const [teamName, name] = msg.content.substring(6).split(",");
     if (!teamName || !name) {
       msg.channel.send({
         embed: new MessageEmbed()
@@ -175,7 +179,7 @@ client.on("message", async (msg) => {
       msg.channel.send({
         embed: new MessageEmbed()
           .setTitle("오류!")
-          .setDescription(josa(`팀 ${teamName}}#{을} 찾을 수 없습니다.`)),
+          .setDescription(josa(`팀 ${teamName}#{을} 찾을 수 없습니다.`)),
       } as MessageOptions);
       return;
     }
@@ -219,7 +223,9 @@ client.on("message", async (msg) => {
       });
     }
     msg.channel.send({
-      embed: new MessageEmbed().setTitle(`팀 목록`).addFields(fields),
+      embed: new MessageEmbed()
+        .setTitle(`팀 목록 - ${league}학년`)
+        .addFields(fields),
     } as MessageOptions);
   } else if (msg.content.startsWith("!팀정보")) {
     const name = msg.content.substring(5);
@@ -307,8 +313,8 @@ client.on("message", async (msg) => {
       (await matchRepository.findOne({
         where: {
           round,
-          team1: Raw((team1) => `${team1} -> '$.name' = '${team1Name}'`),
-          team2: Raw((team2) => `${team2} -> '$.name' = '${team2Name}'`),
+          team1: team1Name,
+          team2: team2Name,
         },
       })) || new Match(Number(round), team1, team2);
     const winner = isEnd && (team1Score > team2Score ? team1 : team2).name;
@@ -355,16 +361,19 @@ client.on("message", async (msg) => {
       return;
     }
     const match = (await matchRepository.find({
-      where: [
-        { team1: Raw((team1) => `${team1} -> '$.name' = '${teamName}'`) },
-        { team2: Raw((team2) => `${team2} -> '$.name' = '${teamName}'`) },
-      ],
+      where: [{ team1: teamName }, { team2: teamName }],
     })) as Match[];
     for (let i of match) {
+      const team1 = (await teamRepository.findOne({
+        where: { name: i.team1 },
+      })) as Team;
+      const team2 = (await teamRepository.findOne({
+        where: { name: i.team2 },
+      })) as Team;
       if (round ? i.round == Number(round) : true)
         msg.channel.send({
           embed: new MessageEmbed()
-            .setTitle(`대진 정보 - ${i.team1.name} VS ${i.team2.name}`)
+            .setTitle(`대진 정보 - ${i.team1} VS ${i.team2}`)
             .addFields([
               {
                 name: "라운드 정보",
@@ -373,18 +382,18 @@ client.on("message", async (msg) => {
               {
                 name: `${
                   i.winner
-                    ? "[" + (i.winner == i.team1.name ? "승" : "패") + "] "
+                    ? "[" + (i.winner == team1.name ? "승" : "패") + "] "
                     : ""
-                }${i.team1.name} - ${i.team1Score}`,
-                value: spreadMembers(JSON.parse(i.team1.members)),
+                }${team1.name} - ${i.team1Score}`,
+                value: spreadMembers(JSON.parse(team1.members)),
               },
               {
                 name: `${
                   i.winner
-                    ? "[" + (i.winner == i.team2.name ? "승" : "패") + "] "
+                    ? "[" + (i.winner == team2.name ? "승" : "패") + "] "
                     : ""
-                }${i.team2.name} - ${i.team2Score}`,
-                value: spreadMembers(JSON.parse(i.team2.members)),
+                }${team2.name} - ${i.team2Score}`,
+                value: spreadMembers(JSON.parse(team2.members)),
               },
               {
                 name: "상태",
@@ -445,7 +454,7 @@ client.on("message", async (msg) => {
         .addFields([
           {
             name: "부전승",
-            value: winByDefaultValue,
+            value: winByDefaultValue || "없음",
           },
           {
             name: "대진",
