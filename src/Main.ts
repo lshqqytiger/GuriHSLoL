@@ -103,7 +103,7 @@ client.on("message", async (msg) => {
     const [teamName, name, studentId, tier, nickname, lane] = msg.content
       .substring(6)
       .split(",");
-    if (!teamName || !name || !studentId || !tier || !nickname) {
+    if (!teamName || !name || !studentId || !tier || !nickname || !lane) {
       msg.channel.send({
         embed: new MessageEmbed()
           .setTitle("오류!")
@@ -193,8 +193,8 @@ client.on("message", async (msg) => {
       } as MessageOptions);
       return;
     }
-    members.splice(index, 1);
     team.score -= calculateScore(members[index].tier, members[index].lane) || 0;
+    members.splice(index, 1);
     team.members = JSON.stringify(members);
     await teamRepository.save(team);
     msg.channel.send(
