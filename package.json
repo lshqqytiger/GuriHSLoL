@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/Main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "run": "node dist/Main.js"
   },
   "author": "이승훈",
   "license": "MIT",
@@ -15,5 +15,8 @@
     "josa": "^3.0.1",
     "mysql": "^2.18.1",
     "typeorm": "^0.2.41"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.2"
   }
 }

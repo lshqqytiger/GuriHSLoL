@@ -1,4 +1,5 @@
 import { Client, MessageEmbed, MessageOptions } from "discord.js";
+import fs from "fs";
 import typeorm, { createConnection, Connection, Repository } from "typeorm";
 import { josa } from "josa";
 import { Logger } from "./Logger";
@@ -10,6 +11,9 @@ import { Match } from "./model/Match";
 import { Member } from "./Types";
 import { Help } from "./String";
 import config from "./Config";
+
+const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
+let dependencies = "";
 
 const client = new Client();
 const calculateScore = (tier: string, lane: string): number => {
@@ -62,6 +66,9 @@ let teamRepository: Repository<TeamSchema>;
 let matchRepository: Repository<MatchSchema>;
 
 client.on("ready", async () => {
+  for (let i in pkg.dependencies)
+    dependencies += `${i}@${pkg.dependencies[i]}\n`;
+
   agent = await createConnection({
     type: "mysql",
     host: "localhost",
@@ -458,6 +465,13 @@ client.on("message", async (msg) => {
       new MessageEmbed()
         .setTitle(`대진 편성 결과${round ? "" : " (모의)"}`)
         .addFields([winByDefault, matches])
+    );
+  } else if (msg.content.startsWith("!정보")) {
+    msg.channel.send(
+      new MessageEmbed().setTitle("봇 정보").addFields([
+        { name: "개발", value: pkg.author },
+        { name: "오픈소스 라이선스 고지", value: dependencies },
+      ])
     );
   }
 });
